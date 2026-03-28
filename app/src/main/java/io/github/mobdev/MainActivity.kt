@@ -31,11 +31,7 @@ class MainActivity : AppCompatActivity() {
         binding.buttonMinus.setOnClickListener { append("-") }
         binding.buttonMultiply.setOnClickListener { append("*") }
         binding.buttonDivide.setOnClickListener { append("/") }
-        binding.buttonAllClear.setOnClickListener {
-            expression = ""
-            binding.resultTv.text = "0"
-            binding.solutionTv.text = ""
-        }
+        binding.buttonLeftBracket.setOnClickListener { append("(") }
         binding.buttonBackspace.setOnClickListener {
             if (expression.isNotEmpty()) {
                 expression = expression.dropLast(1)

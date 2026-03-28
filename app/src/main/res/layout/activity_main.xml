@@ -65,15 +65,15 @@
                 app:rippleColor="#80ffffff" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_all_clear"
+                android:id="@+id/button_left_bracket"
                 style="@style/Widget.MaterialComponents.ExtendedFloatingActionButton"
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:layout_margin="12dp"
                 android:backgroundTint="#29324f"
-                android:text="AC"
+                android:text="("
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="28sp"
                 app:cornerRadius="8dp"
                 app:elevation="0dp"
                 android:elevation="0dp"

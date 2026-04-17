@@ -6,4 +6,5 @@
     <string name="no_phone">нет телефона</string>
     <string name="no_email">нет email</string>
     <string name="contacts">Контакты</string>
+    <string name="unknown">?</string>
 </resources>

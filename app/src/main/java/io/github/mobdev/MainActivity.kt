@@ -68,7 +68,10 @@ fun App() {
         if (hasPermission) {
             LazyColumn(Modifier.padding(paddingValues)) {
                 items(contacts) { contact ->
-                    ContactItem(name = contact.name ?: "?", onClick = { selectedContact = contact })
+                    ContactItem(
+                        name = contact.name ?: stringResource(R.string.unknown),
+                        onClick = { selectedContact = contact }
+                    )
                 }
             }
         } else {
@@ -87,7 +90,7 @@ fun App() {
             AlertDialog(
                 onDismissRequest = { selectedContact = null },
                 confirmButton = { },
-                title = { Text(selectedContact!!.name ?: "?") },
+                title = { Text(selectedContact!!.name ?: stringResource(R.string.unknown)) },
                 text = {
                     Column {
                         Text(selectedContact!!.phoneNumber ?: stringResource(R.string.no_phone))
@@ -111,7 +114,7 @@ fun ContactItem(name: String, onClick: () -> Unit) {
                 .background(Color.Red, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(name.first().toString())
+            Text(name.firstOrNull()?.toString() ?: stringResource(R.string.unknown))
         }
         Text(name, modifier = Modifier.padding(start = 12.dp), fontSize = 18.sp)
     }

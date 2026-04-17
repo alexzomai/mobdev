@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">mobdev</string>
+    <string name="app_name">Contacts</string>
+    <string name="hello">Hello World!</string>
+    <string name="no_permission">Нет разрешения на чтение контактов</string>
+    <string name="allow_in_settings">Разрешите доступ через настройки</string>
+    <string name="no_phone">нет телефона</string>
+    <string name="no_email">нет email</string>
+    <string name="contacts">Контакты</string>
 </resources>

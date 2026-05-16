@@ -1,10 +1,23 @@
 <resources>
-    <string name="app_name">Contacts</string>
-    <string name="hello">Hello World!</string>
-    <string name="no_permission">Нет разрешения на чтение контактов</string>
-    <string name="allow_in_settings">Разрешите доступ через настройки</string>
-    <string name="no_phone">нет телефона</string>
-    <string name="no_email">нет email</string>
-    <string name="contacts">Контакты</string>
-    <string name="unknown">?</string>
+    <string name="app_name">Чат</string>
+    <string name="login_hint">Логин</string>
+    <string name="password_hint">Пароль</string>
+    <string name="login_button">Войти</string>
+    <string name="error_wrong_credentials">Неверный логин / пароль</string>
+    <string name="error_network">Ошибка сети. Попробуйте ещё раз.</string>
+    <string name="error_title">Ошибка</string>
+    <string name="ok">OK</string>
+    <string name="logout">Выйти</string>
+    <string name="chats_title">Чаты</string>
+    <string name="select_chat">Выберите чат</string>
+    <string name="send">Отправить</string>
+    <string name="message_hint">Сообщение</string>
+    <string name="loading">Загрузка…</string>
+    <string name="image_content_description">Изображение</string>
+    <string name="close">Закрыть</string>
+    <string name="back">Назад</string>
+    <string name="new_chat">Новый чат</string>
+    <string name="new_chat_hint">Имя канала</string>
+    <string name="create">Создать</string>
+    <string name="cancel">Отмена</string>
 </resources>

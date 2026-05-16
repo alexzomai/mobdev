@@ -1,4 +1,3 @@
 <resources>
-    <style name="Theme.Mobdev" parent="android:Theme.Material.Light.NoActionBar">
-    </style>
+    <style name="Theme.Mobdev" parent="Theme.Material3.Light.NoActionBar" />
 </resources>

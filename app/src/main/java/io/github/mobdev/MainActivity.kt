@@ -1,121 +1,188 @@
 package io.github.mobdev
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.fragment.app.commit
+import androidx.lifecycle.ViewModelProvider
+import io.github.mobdev.network.TokenStore
+import io.github.mobdev.ui.AppViewModel
+import io.github.mobdev.ui.ChatListFragment
+import io.github.mobdev.ui.ChatListViewModel
+import io.github.mobdev.ui.ImageFragment
+import io.github.mobdev.ui.LoginFragment
+import io.github.mobdev.ui.MessagesFragment
+import io.github.mobdev.ui.MessagesViewModel
+import io.github.mobdev.ui.SelectChatFragment
+import io.github.mobdev.ui.VMFactory
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+
+    private val appViewModel: AppViewModel by viewModels()
+
+    val vmFactory: VMFactory by lazy { VMFactory(TokenStore(this)) }
+
+    private val isLandscape: Boolean
+        get() = findViewById<android.view.View?>(R.id.container_detail) != null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            App()
-        }
-    }
-}
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContentView(R.layout.activity_main)
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun App() {
-    var hasPermission by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    var contacts by remember { mutableStateOf(emptyList<Contact>()) }
-    var selectedContact by remember { mutableStateOf<Contact?>(null) }
-
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-        if (granted) contacts = context.fetchAllContacts()
-    }
-
-    LaunchedEffect(Unit) {
-        launcher.launch(android.Manifest.permission.READ_CONTACTS)
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.contacts)) })
-        }
-    ) { paddingValues ->
-        if (hasPermission) {
-            LazyColumn(Modifier.padding(paddingValues)) {
-                items(contacts) { contact ->
-                    ContactItem(
-                        name = contact.name ?: stringResource(R.string.unknown),
-                        onClick = { selectedContact = contact }
-                    )
-                }
+        if (savedInstanceState == null) {
+            val tokenStore = TokenStore(this)
+            if (tokenStore.token != null) {
+                showChats()
+            } else {
+                showLogin()
             }
         } else {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(R.string.no_permission))
-                    Text(stringResource(R.string.allow_in_settings))
+            restoreAfterRotation()
+        }
+
+        setupBackPressed()
+    }
+
+    private fun setupBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val fm = supportFragmentManager
+
+                if (isLandscape) {
+                    val topDetail = fm.findFragmentById(R.id.container_detail)
+                    if (topDetail is ImageFragment) {
+                        fm.popBackStack()
+                        return
+                    }
+                    val selected = appViewModel.selectedChannel.value
+                    if (selected != null) {
+                        appViewModel.selectChannel(null)
+                        fm.commit {
+                            replace(R.id.container_detail, SelectChatFragment())
+                        }
+                        return
+                    }
+                    finish()
+                } else {
+                    if (fm.backStackEntryCount > 0) {
+                        fm.popBackStack()
+                    } else {
+                        finish()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun restoreAfterRotation() {
+        val tokenStore = TokenStore(this)
+        supportFragmentManager.popBackStack(
+            null,
+            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE,
+        )
+        if (tokenStore.token == null) {
+            showLogin()
+            return
+        }
+        if (isLandscape) {
+            ensureLandscapeContainers(appViewModel.selectedChannel.value)
+        } else {
+            val channel = appViewModel.selectedChannel.value
+            supportFragmentManager.commit {
+                replace(R.id.container, ChatListFragment())
+            }
+            if (channel != null) {
+                supportFragmentManager.commit {
+                    replace(R.id.container, MessagesFragment.newInstance(channel))
+                    addToBackStack(null)
                 }
             }
         }
+    }
 
-        if (selectedContact != null) {
-            AlertDialog(
-                onDismissRequest = { selectedContact = null },
-                confirmButton = { },
-                title = { Text(selectedContact!!.name ?: stringResource(R.string.unknown)) },
-                text = {
-                    Column {
-                        Text(selectedContact!!.phoneNumber ?: stringResource(R.string.no_phone))
-                        Text(selectedContact!!.email ?: stringResource(R.string.no_email))
-                    }
-                }
-            )
+    private fun showLogin() {
+        if (isLandscape) {
+            supportFragmentManager.commit {
+                replace(R.id.container_list, LoginFragment())
+                replace(R.id.container_detail, SelectChatFragment())
+            }
+        } else {
+            supportFragmentManager.commit {
+                replace(R.id.container, LoginFragment())
+            }
         }
     }
-}
 
-@Composable
-fun ContactItem(name: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.padding(12.dp).clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color.Red, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(name.firstOrNull()?.toString() ?: stringResource(R.string.unknown))
+    private fun showChats() {
+        if (isLandscape) {
+            val channel = appViewModel.selectedChannel.value
+            ensureLandscapeContainers(channel)
+        } else {
+            supportFragmentManager.commit {
+                replace(R.id.container, ChatListFragment())
+            }
         }
-        Text(name, modifier = Modifier.padding(start = 12.dp), fontSize = 18.sp)
+    }
+
+    private fun ensureLandscapeContainers(channel: String?) {
+        supportFragmentManager.commit {
+            replace(R.id.container_list, ChatListFragment())
+            if (channel != null) {
+                replace(R.id.container_detail, MessagesFragment.newInstance(channel))
+            } else {
+                replace(R.id.container_detail, SelectChatFragment())
+            }
+        }
+    }
+
+    fun goToLogin() {
+        TokenStore(this).clear()
+        appViewModel.selectChannel(null)
+        val provider = ViewModelProvider(this, vmFactory)
+        provider[ChatListViewModel::class.java].reset()
+        provider[MessagesViewModel::class.java].reset()
+        supportFragmentManager.popBackStack(
+            null,
+            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE,
+        )
+        showLogin()
+    }
+
+    fun goToChats() {
+        supportFragmentManager.popBackStack(
+            null,
+            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE,
+        )
+        showChats()
+    }
+
+    fun openChannel(channel: String) {
+        if (isLandscape) {
+            supportFragmentManager.commit {
+                replace(R.id.container_detail, MessagesFragment.newInstance(channel))
+            }
+        } else {
+            supportFragmentManager.commit {
+                replace(R.id.container, MessagesFragment.newInstance(channel))
+                addToBackStack(null)
+            }
+        }
+    }
+
+    fun openImage(path: String) {
+        if (isLandscape) {
+            supportFragmentManager.commit {
+                replace(R.id.container_detail, ImageFragment.newInstance(path))
+                addToBackStack(null)
+            }
+        } else {
+            supportFragmentManager.commit {
+                replace(R.id.container, ImageFragment.newInstance(path))
+                addToBackStack(null)
+            }
+        }
     }
 }

@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private val appViewModel: AppViewModel by viewModels()
 
-    val vmFactory: VMFactory by lazy { VMFactory(TokenStore(this)) }
+    val vmFactory: VMFactory by lazy { VMFactory(TokenStore(this), applicationContext) }
 
     private val isLandscape: Boolean
         get() = findViewById<android.view.View?>(R.id.container_detail) != null

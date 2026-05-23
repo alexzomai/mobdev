@@ -20,4 +20,10 @@
     <string name="new_chat_hint">Имя канала</string>
     <string name="create">Создать</string>
     <string name="cancel">Отмена</string>
+    <string name="offline_banner">Нет подключения к сети — показаны кэшированные данные</string>
+    <string name="pending_label">⏳ Не отправлено — будет отправлено при появлении сети</string>
+    <string name="empty_no_network_title">Нет подключения к сети</string>
+    <string name="empty_no_network_sub">Подключитесь к интернету, чтобы загрузить сообщения</string>
+    <string name="empty_channel_title">Здесь пока пусто</string>
+    <string name="empty_channel_sub">Напишите первым!</string>
 </resources>
